@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3C Emoji Generator - Create Custom Emojis for Canva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .emoji-canvas {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .emoji-preview {
+            width: 300px;
+            height: 300px;
+            border: 3px dashed #667eea;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 200px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .emoji-preview:hover {
+            transform: scale(1.05);
+            border-color: #764ba2;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .emoji-item {
+            font-size: 40px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            background: #f3f4f6;
+        }
+        
+        .emoji-item:hover {
+            transform: scale(1.2);
+            background: #e5e7eb;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .color-picker-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 3px solid white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .color-picker-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .size-slider {
+            width: 100%;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4">
+                <i class="fas fa-smile-beam mr-3"></i>3C Emoji Generator
+            </h1>
+            <p class="text-xl text-white opacity-90">Create custom emojis with backgrounds for Canva & content creation</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Panel - Emoji Selection -->
+            <div class="emoji-canvas p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-icons mr-2 text-purple-600"></i>Choose Emoji
+                </h2>
+                
+                <!-- Upload Custom Image -->
+                <div class="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
+                    <h3 class="text-sm font-bold text-gray-800 mb-2">
+                        <i class="fas fa-upload mr-1 text-purple-600"></i>Upload Your 3C Emoji
+                    </h3>
+                    <input type="file" id="customImageUpload" accept="image/*" 
+                        class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600 cursor-pointer">
+                    <p class="text-xs text-gray-600 mt-2">Upload your 3C branded emoji images (PNG recommended)</p>
+                </div>
+                
+                <!-- Search -->
+                <input type="text" id="emojiSearch" placeholder="Search emojis..." 
+                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg mb-4 focus:border-purple-500 focus:outline-none">
+                
+                <!-- Category Filter -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button onclick="filterCategory('all')" class="px-3 py-1 bg-purple-500 text-white rounded-full text-sm hover:bg-purple-600">All</button>
+                    <button onclick="filterCategory('smileys')" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300">Smileys</button>
+                    <button onclick="filterCategory('gestures')" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300">Gestures</button>
+                    <button onclick="filterCategory('objects')" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300">Objects</button>
+                    <button onclick="filterCategory('symbols')" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300">Symbols</button>
+                </div>
+                
+                <!-- Emoji Grid -->
+                <div id="emojiGrid" class="emoji-grid"></div>
+            </div>
+
+            <!-- Middle Panel - Preview & Customize -->
+            <div class="emoji-canvas p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-palette mr-2 text-purple-600"></i>Customize
+                </h2>
+                
+                <!-- Preview -->
+                <div class="flex justify-center mb-6">
+                    <canvas id="emojiCanvas" class="emoji-preview"></canvas>
+                </div>
+                
+                <!-- Selected Emoji Display -->
+                <div class="text-center mb-4">
+                    <p class="text-sm text-gray-600">Selected Emoji:</p>
+                    <p id="selectedEmoji" class="text-6xl">😊</p>
+                </div>
+                
+                <!-- Background Color -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Background Color</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="setBackgroundColor('#FFFFFF')" class="color-picker-btn" style="background: #FFFFFF;"></button>
+                        <button onclick="setBackgroundColor('#FFE5E5')" class="color-picker-btn" style="background: #FFE5E5;"></button>
+                        <button onclick="setBackgroundColor('#E5F3FF')" class="color-picker-btn" style="background: #E5F3FF;"></button>
+                        <button onclick="setBackgroundColor('#E5FFE5')" class="color-picker-btn" style="background: #E5FFE5;"></button>
+                        <button onclick="setBackgroundColor('#FFF5E5')" class="color-picker-btn" style="background: #FFF5E5;"></button>
+                        <button onclick="setBackgroundColor('#F3E5FF')" class="color-picker-btn" style="background: #F3E5FF;"></button>
+                        <input type="color" id="customColor" class="color-picker-btn" onchange="setBackgroundColor(this.value)">
+                    </div>
+                </div>
+                
+                <!-- Emoji Size -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Emoji Size: <span id="sizeValue">200</span>px</label>
+                    <input type="range" id="emojiSize" min="50" max="280" value="200" class="size-slider" oninput="updateEmojiSize(this.value)">
+                </div>
+                
+                <!-- Border Options -->
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="addBorder" onchange="toggleBorder()" class="mr-2">
+                        <span class="text-sm font-bold text-gray-700">Add Border</span>
+                    </label>
+                    <div id="borderOptions" class="mt-2 hidden">
+                        <input type="color" id="borderColor" value="#667eea" onchange="updateCanvas()" class="mr-2">
+                        <input type="range" id="borderWidth" min="1" max="20" value="5" oninput="updateCanvas()" class="size-slider">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Export Options -->
+            <div class="emoji-canvas p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-download mr-2 text-purple-600"></i>Export
+                </h2>
+                
+                <!-- Export Size -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Export Size</label>
+                    <select id="exportSize" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg">
+                        <option value="512">512x512 (Recommended)</option>
+                        <option value="256">256x256 (Small)</option>
+                        <option value="1024">1024x1024 (Large)</option>
+                        <option value="2048">2048x2048 (Extra Large)</option>
+                    </select>
+                </div>
+                
+                <!-- Format -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Format</label>
+                    <select id="exportFormat" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg">
+                        <option value="png">PNG (Transparent)</option>
+                        <option value="jpg">JPG (Smaller file)</option>
+                    </select>
+                </div>
+                
+                <!-- Download Button -->
+                <button onclick="downloadEmoji()" class="download-btn w-full text-white font-bold py-4 rounded-lg text-lg mb-4">
+                    <i class="fas fa-download mr-2"></i>Download Emoji
+                </button>
+                
+                <!-- Quick Actions -->
+                <div class="space-y-2">
+                    <button onclick="copyToClipboard()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 rounded-lg">
+                        <i class="fas fa-copy mr-2"></i>Copy to Clipboard
+                    </button>
+                    <button onclick="resetCanvas()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 rounded-lg">
+                        <i class="fas fa-redo mr-2"></i>Reset
+                    </button>
+                </div>
+                
+                <!-- Tips -->
+                <div class="mt-6 p-4 bg-purple-50 rounded-lg">
+                    <h3 class="font-bold text-purple-800 mb-2"><i class="fas fa-lightbulb mr-2"></i>Tips</h3>
+                    <ul class="text-sm text-purple-700 space-y-1">
+                        <li>• Use 512x512 for Canva designs</li>
+                        <li>• PNG format for transparency</li>
+                        <li>• Match colors to your brand</li>
+                        <li>• Add borders for emphasis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Emoji database
+        const emojiDatabase = {
+            smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴'],
+            gestures: ['👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '☝️', '👋', '🤚', '🖐️', '✋', '🖖', '👏', '🙌', '👐', '🤲', '🤝', '🙏'],
+            objects: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '🤺', '⛹️', '🤾', '🏌️', '🏇', '🧘', '🏊', '🤽'],
+            symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🈳', '🈂️', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '⚧️', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️', '®️', '〰️', '➰', '➿', '🔚', '🔙', '🔛', '🔝', '🔜', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '👁️‍🗨️', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧']
+        };
+
+        let currentEmoji = '😊';
+        let customImage = null; // For uploaded 3C emoji images
+        let isCustomImage = false;
+        let backgroundColor = '#FFFFFF';
+        let emojiSize = 200;
+        let hasBorder = false;
+        let borderColor = '#667eea';
+        let borderWidth = 5;
+
+        const canvas = document.getElementById('emojiCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 300;
+        canvas.height = 300;
+
+        // Handle custom image upload
+        document.getElementById('customImageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        customImage = img;
+                        isCustomImage = true;
+                        document.getElementById('selectedEmoji').innerHTML = `<img src="${event.target.result}" style="width: 60px; height: 60px; object-fit: contain;">`;
+                        updateCanvas();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Initialize emoji grid
+        function initEmojiGrid() {
+            const grid = document.getElementById('emojiGrid');
+            const allEmojis = Object.values(emojiDatabase).flat();
+            
+            allEmojis.forEach(emoji => {
+                const div = document.createElement('div');
+                div.className = 'emoji-item';
+                div.textContent = emoji;
+                div.onclick = () => selectEmoji(emoji);
+                grid.appendChild(div);
+            });
+        }
+
+        function selectEmoji(emoji) {
+            currentEmoji = emoji;
+            isCustomImage = false; // Switch back to emoji mode
+            document.getElementById('selectedEmoji').textContent = emoji;
+            updateCanvas();
+        }
+
+        function setBackgroundColor(color) {
+            backgroundColor = color;
+            updateCanvas();
+        }
+
+        function updateEmojiSize(size) {
+            emojiSize = parseInt(size);
+            document.getElementById('sizeValue').textContent = size;
+            updateCanvas();
+        }
+
+        function toggleBorder() {
+            hasBorder = document.getElementById('addBorder').checked;
+            document.getElementById('borderOptions').classList.toggle('hidden', !hasBorder);
+            updateCanvas();
+        }
+
+        function updateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            ctx.fillStyle = backgroundColor;
+            if (hasBorder) {
+                ctx.fillRect(borderWidth, borderWidth, canvas.width - borderWidth * 2, canvas.height - borderWidth * 2);
+                
+                // Draw border
+                ctx.strokeStyle = document.getElementById('borderColor').value;
+                ctx.lineWidth = borderWidth;
+                ctx.strokeRect(borderWidth / 2, borderWidth / 2, canvas.width - borderWidth, canvas.height - borderWidth);
+            } else {
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // Draw emoji or custom image
+            if (isCustomImage && customImage) {
+                // Draw custom 3C emoji image
+                const imgSize = emojiSize;
+                const x = (canvas.width - imgSize) / 2;
+                const y = (canvas.height - imgSize) / 2;
+                ctx.drawImage(customImage, x, y, imgSize, imgSize);
+            } else {
+                // Draw standard emoji text
+                ctx.font = `${emojiSize}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(currentEmoji, canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function downloadEmoji() {
+            const size = parseInt(document.getElementById('exportSize').value);
+            const format = document.getElementById('exportFormat').value;
+            
+            // Create temporary canvas at export size
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = size;
+            exportCanvas.height = size;
+            const exportCtx = exportCanvas.getContext('2d');
+            
+            const scale = size / 300;
+            
+            // Draw background
+            exportCtx.fillStyle = backgroundColor;
+            if (hasBorder) {
+                const scaledBorder = borderWidth * scale;
+                exportCtx.fillRect(scaledBorder, scaledBorder, size - scaledBorder * 2, size - scaledBorder * 2);
+                
+                // Draw border
+                exportCtx.strokeStyle = borderColor;
+                exportCtx.lineWidth = scaledBorder;
+                exportCtx.strokeRect(scaledBorder / 2, scaledBorder / 2, size - scaledBorder, size - scaledBorder);
+            } else {
+                exportCtx.fillRect(0, 0, size, size);
+            }
+            
+            // Draw emoji or custom image
+            if (isCustomImage && customImage) {
+                // Draw custom 3C emoji image
+                const imgSize = emojiSize * scale;
+                const x = (size - imgSize) / 2;
+                const y = (size - imgSize) / 2;
+                exportCtx.drawImage(customImage, x, y, imgSize, imgSize);
+            } else {
+                // Draw standard emoji text
+                exportCtx.font = `${emojiSize * scale}px Arial`;
+                exportCtx.textAlign = 'center';
+                exportCtx.textBaseline = 'middle';
+                exportCtx.fillText(currentEmoji, size / 2, size / 2);
+            }
+            
+            // Download
+            const link = document.createElement('a');
+            const filename = isCustomImage ? `3c-custom-emoji-${size}.${format}` : `3c-emoji-${currentEmoji}-${size}.${format}`;
+            link.download = filename;
+            link.href = exportCanvas.toDataURL(`image/${format}`);
+            link.click();
+        }
+
+        function copyToClipboard() {
+            canvas.toBlob(blob => {
+                const item = new ClipboardItem({ 'image/png': blob });
+                navigator.clipboard.write([item]).then(() => {
+                    alert('✅ Emoji copied to clipboard!');
+                });
+            });
+        }
+
+        function resetCanvas() {
+            currentEmoji = '😊';
+            backgroundColor = '#FFFFFF';
+            emojiSize = 200;
+            hasBorder = false;
+            document.getElementById('selectedEmoji').textContent = currentEmoji;
+            document.getElementById('emojiSize').value = 200;
+            document.getElementById('sizeValue').textContent = 200;
+            document.getElementById('addBorder').checked = false;
+            document.getElementById('borderOptions').classList.add('hidden');
+            updateCanvas();
+        }
+
+        function filterCategory(category) {
+            const grid = document.getElementById('emojiGrid');
+            grid.innerHTML = '';
+            
+            const emojis = category === 'all' 
+                ? Object.values(emojiDatabase).flat()
+                : emojiDatabase[category] || [];
+            
+            emojis.forEach(emoji => {
+                const div = document.createElement('div');
+                div.className = 'emoji-item';
+                div.textContent = emoji;
+                div.onclick = () => selectEmoji(emoji);
+                grid.appendChild(div);
+            });
+        }
+
+        // Search functionality
+        document.getElementById('emojiSearch').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            if (!searchTerm) {
+                filterCategory('all');
+                return;
+            }
+            
+            // Simple search - you could enhance this
+            const allEmojis = Object.values(emojiDatabase).flat();
+            const grid = document.getElementById('emojiGrid');
+            grid.innerHTML = '';
+            
+            allEmojis.slice(0, 50).forEach(emoji => {
+                const div = document.createElement('div');
+                div.className = 'emoji-item';
+                div.textContent = emoji;
+                div.onclick = () => selectEmoji(emoji);
+                grid.appendChild(div);
+            });
+        });
+
+        // Initialize
+        initEmojiGrid();
+        updateCanvas();
+    </script>
+</body>
+</html>
